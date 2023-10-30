@@ -12,6 +12,10 @@ logger = logging.getLogger(__file__)
 
 def get_product_list(page, campaign_id, access_token):
     """Получает список товаров с сайта Yandex Market, начиная со страницы page
+        Аргументы: page - страница с котрой начинается скачивание списка
+                    campaign_id - id компании
+                    access_token - токен доступа к сайту для авторизации
+        Возвращает: список товаров 
 
     """
     endpoint_url = "https://api.partner.market.yandex.ru/"
@@ -35,6 +39,11 @@ def get_product_list(page, campaign_id, access_token):
 def update_stocks(stocks, campaign_id, access_token):
     """Обновляет список товаров на сайте Yandex Market, в соотвествии со списком stocks
 
+        Аргументы: stocks - список полученный функцией create stocks
+                    campaign_id - id компании
+                    access_token - токен доступа к сайту для авторизации
+        Возвращает: ответ в формате json
+
     """
     endpoint_url = "https://api.partner.market.yandex.ru/"
     headers = {
@@ -54,6 +63,11 @@ def update_stocks(stocks, campaign_id, access_token):
 def update_price(prices, campaign_id, access_token):
     """Меняет цены в соответствии со списком prices
 
+        Аргументы: prices - список цент которые заменяют старые
+                    campaign_id - id компании
+                    access_token - токен доступа к сайту для авторизации
+        Возвращает: ответ в формате json
+        
     """
     endpoint_url = "https://api.partner.market.yandex.ru/"
     headers = {
@@ -71,7 +85,13 @@ def update_price(prices, campaign_id, access_token):
 
 
 def get_offer_ids(campaign_id, market_token):
-    """Получает список артикулов товаров Яндекс маркета"""
+    """Получает список артикулов товаров Яндекс маркета
+    
+        Аргументы: campaign_id - id компании
+                    market_token - токен доступа к сайту для авторизации
+        Возвращает: список id товаров
+
+    """
     page = ""
     product_list = []
     while True:
@@ -89,6 +109,12 @@ def get_offer_ids(campaign_id, market_token):
 def create_stocks(watch_remnants, offer_ids, warehouse_id):
     """Сравнивает полученные артикулы с Yandex Market со списком watch_remnants.
     В список stocks добавляется то что загружено в  watch_remnants и то что не загружено, но есть в списке offer_ids
+
+        Аргументы: watch_remnants - список полученный через функцию download_stock
+                    offer_ids - список артикулов товаров 
+                    warehouse_id - id склада хранения
+
+        Возвращает: обновленный список товаров
 
     """
     # Уберем то, что не загружено в market
@@ -138,6 +164,11 @@ def create_stocks(watch_remnants, offer_ids, warehouse_id):
 def create_prices(watch_remnants, offer_ids):
     """Создает список словарей с id и price из списка watch_remnants.
 
+        Аргументы:  watch_remnants - список полученный через функцию download_stock
+                    offer_ids - список артикулов товаров 
+        Возвращает: список  словарей цен с артикулом товара, ценой и типом валюты
+
+    
     """
     prices = []
     for watch in watch_remnants:
@@ -161,6 +192,12 @@ def create_prices(watch_remnants, offer_ids):
 async def upload_prices(watch_remnants, campaign_id, market_token):
     """Обновляет цены на сайте  Yandex Market
 
+        Аргументы: watch_remnants - список полученный через функцию download_stock
+                    campaign_id - id компании
+                    market_token - токен доступа к сайту для авторизаци
+
+        Возвращает: список словарей
+
     """
     offer_ids = get_offer_ids(campaign_id, market_token)
     prices = create_prices(watch_remnants, offer_ids)
@@ -171,6 +208,13 @@ async def upload_prices(watch_remnants, campaign_id, market_token):
 
 async def upload_stocks(watch_remnants, campaign_id, market_token, warehouse_id):
     """Обновляет список товаров на сайте Yandex Market
+
+        Аргументы: watch_remnants - список полученный через функцию download_stock
+                    campaign_id - id компании
+                    market_token - токен доступа к сайту для авторизации
+                    warehouse_id - id склада хранения
+        Возвращает: список товаров в наличии и обновленный список товаров
+
     """
     offer_ids = get_offer_ids(campaign_id, market_token)
     stocks = create_stocks(watch_remnants, offer_ids, warehouse_id)

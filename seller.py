@@ -13,8 +13,13 @@ logger = logging.getLogger(__file__)
 
 def get_product_list(last_id, client_id, seller_token):
     """Получает список товаров магазина Ozon.
-    Для получения необходимы токены доступа к API магазина
-    
+
+    Аргументы: last_id - id товара поледнего в списке
+                client_id - id клиента
+                seller_token - токен продавца
+
+    Возвращает: список     
+
     """
     url = "https://api-seller.ozon.ru/v2/product/list"
     headers = {
@@ -36,7 +41,11 @@ def get_product_list(last_id, client_id, seller_token):
 
 def get_offer_ids(client_id, seller_token):
     """Возвращает список артикулов товаров полученных функцией get_product_list
-    
+
+        Аргументы:  client_id - id клиента
+                    seller_token - токен продавца
+        Возвращает: список id  товаров.
+
     """
     last_id = ""
     product_list = []
@@ -55,7 +64,12 @@ def get_offer_ids(client_id, seller_token):
 
 def update_price(prices: list, client_id, seller_token):
     """Обновляет цены в соотвествии с полученным списком цен
-    
+
+        Аргументы:  client_id - id клиента
+                    seller_token - токен продавца
+                    список цен товаров.
+        Возвращает:  ответ в json формате с новыми ценами
+
     """
     url = "https://api-seller.ozon.ru/v1/product/import/prices"
     headers = {
@@ -70,7 +84,12 @@ def update_price(prices: list, client_id, seller_token):
 
 def update_stocks(stocks: list, client_id, seller_token):
     """Обновляет список товаров, в соответствии с полученным списком товаров
-    
+
+        Аргументы:  client_id - id клиента
+                    seller_token - токен продавца
+                    список товаров.
+        Возвращает: ответ в формате json с товым списком товаров
+
     """
     url = "https://api-seller.ozon.ru/v1/product/import/stocks"
     headers = {
@@ -85,7 +104,8 @@ def update_stocks(stocks: list, client_id, seller_token):
 
 def download_stock():
     """Скачивает список товаров с сайта timeworld.ru и создает словарь с полученными товарами.
-    
+        Возвращает: словарь со списком часов
+
     """
     # Скачать остатки с сайта
     casio_url = "https://timeworld.ru/upload/files/ostatki.zip"
@@ -108,7 +128,12 @@ def download_stock():
 
 def create_stocks(watch_remnants, offer_ids):
     """Сравнивает артикли товаров.
-    Если артикулы совпадают, то товар удаляется из offer_ids, если нет, то добавляется.
+
+        Если артикулы совпадают, то товар удаляется из offer_ids, если нет, то добавляется.
+
+        Аргументы: список полученный функцией download_stock 
+                    список артикулов товаров полученных функцией get_offer_ids
+        Возвращает: список откорректированный список товаров
 
     """
     stocks = []
@@ -132,6 +157,10 @@ def create_stocks(watch_remnants, offer_ids):
 def create_prices(watch_remnants, offer_ids):
     """Формирует список словарей с данными о товаре: тип валюты, артикул, цена
 
+        Аргументы: список полученный функцией download_stock
+                   список артикулов товаров полученных функцией get_offer_ids
+        Возвращает: список словарей
+
     """
     prices = []
     for watch in watch_remnants:
@@ -149,7 +178,9 @@ def create_prices(watch_remnants, offer_ids):
 
 def price_conversion(price: str) -> str:
     """Принимает строку и возвращает преобразованную строку.
-    Выделяет целую часть цены,оствляя цену в рублях, и убирает знаки апострофа, заменяя пустой строкой.
+
+    Выделяет целую часть цены,оствляя цену в рублях, 
+    и убирает знаки апострофа, заменяя пустой строкой.
     Пример: 5'990.00 руб. -> 5990
     
     """
@@ -165,6 +196,11 @@ def divide(lst: list, n: int):
 async def upload_prices(watch_remnants, client_id, seller_token):
     """Обновляет цены на сайте Ozon
 
+        Аргументы: watch_remnants - список полученный функцией download_stock
+                    client_id - id клиента 
+                    seller_token - токен продавца
+        Возвращает: список словарей с обновленными ценами
+
     """    
     offer_ids = get_offer_ids(client_id, seller_token)
     prices = create_prices(watch_remnants, offer_ids)
@@ -175,6 +211,13 @@ async def upload_prices(watch_remnants, client_id, seller_token):
 
 async def upload_stocks(watch_remnants, client_id, seller_token):
     """Обновляет список товаров на сайте Ozon
+
+       Аргументы: watch_remnants - список полученный функцией download_stock 
+                    client_id - id клиента 
+                    seller_token - токен продавца
+        Возвращает: отфильтрованный список товаров в наличии и 
+                    список товаров обновленный через функцию create_stocks
+
     """
     offer_ids = get_offer_ids(client_id, seller_token)
     stocks = create_stocks(watch_remnants, offer_ids)
